@@ -1,0 +1,74 @@
+<script src="https://cdn.plot.ly/plotly-3.0.0.min.js" charset="utf-8"></script>
+<script type="module">
+    const targetDistance = 700;
+    const distance = 2;
+    let eA = [-0.01];
+    let tYawA = [0];
+    let yawA = [-0.01];
+    let pidA = [0];
+    let yA = [0];
+    let eSumA = [0];
+    let xA = [0];
+
+    function x(t) {
+        if(t <= 0){
+            return 0;
+        }
+        xA[t] = xA[t-1] + distance * Math.sin(yawA[t-1]);
+        return xA[t];
+    }
+    function e(t) {
+        eA[t] = -1 * (tYaw(t) - yaw(t));
+        return eA[t];
+    }
+    function pid(t) {
+        if(t <= 0){
+            return 0;
+        }
+        const kp = 6;
+        const ki = 0;
+        const kd = 0;
+        eSumA[t] = e(t) + eSumA[t-1];
+        const currentErr = e(t) * kp + ki * eSumA[t] + kd * (e(t) - e(t-1));
+        pidA[t] = Math.min(1, Math.max(-1, currentErr));
+        return pidA[t];
+    }
+    function tYaw(t){
+        if(t <= 0){
+            return 0;
+        }
+
+        tYawA[t] = -Math.atan(x(t)/(targetDistance - y(t)));
+        return tYawA[t];
+    }
+    function yaw(t){
+        if(t <= 0){
+            return yawA[0];
+        }
+        yawA[t] = pidA[(t-1)] * -0.05333 + yawA[(t-1)];
+        return yawA[t];
+    }
+    function y(t) {
+        if(t <= 0){
+            return 0;
+        }
+        yA[t] = yA[(t-1)] + distance * Math.cos(yawA[(t-1)]);
+        return yA[t];
+    }
+    for(let t = 0; t <= 350; t++){
+        xA[t] = x(t);
+        y(t);
+        yaw(t);
+        pid(t);
+        e(t);
+       console.log( `x(${t})=${x(t)}, y(${t})=${y(t)}, yaw(${t})=${yaw(t)}, tYaw(${t})=${tYaw(t)}, alpha(${t})=${Math.atan(x(t)/(targetDistance - y(t)))}, e(${t})=${e(t)}, pid(${t})=${pid(t)}`);
+    }
+    
+
+    let plot = document.getElementById('plot');
+	Plotly.newPlot( plot, [{
+	x: xA,
+	y: yA }], {
+	margin: { t: 0 } } );
+</script>
+<div id="plot" style="width:600px;height:500px;"></div>

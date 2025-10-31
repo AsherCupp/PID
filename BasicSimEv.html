@@ -1,0 +1,20 @@
+<script src="https://cdn.plot.ly/plotly-3.0.0.min.js" charset="utf-8"></script>
+<script type="module">
+    const distanceY = 80000;
+    let distanceX = 0;
+    let yawA = [0];
+    let xA = [0];
+    let yA = [0];
+    let mLeftSpeed = [0];
+    let mRightSpeed = [0];
+    let eX = [0];
+    let eY = [0];
+    
+
+    let plot = document.getElementById('plot');
+	Plotly.newPlot( plot, [{
+	x: xA,
+	y: yA }], {
+	margin: { t: 0 } } );
+</script>
+<div id="plot" style="width:600px;height:500px;"></div>

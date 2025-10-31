@@ -1,14 +1,101 @@
 <script src="https://cdn.plot.ly/plotly-3.0.0.min.js" charset="utf-8"></script>
 <script type="module">
-    const distanceY = 80000;
-    let distanceX = 0;
+    const distanceX = 80000;
+    const offset = 10000;
+    const maxAngle = Math.PI / 2;
+    const wheelRadius = 200;
+    const wheelBase = 2000;
+
+    const kP = 1;
+    const kI = 1;
+    const kD = 1;
+
+    let distanceY = 0;
     let yawA = [0];
     let xA = [0];
     let yA = [0];
-    let mLeftSpeed = [0];
-    let mRightSpeed = [0];
-    let eX = [0];
-    let eY = [0];
+    let vA = [0];
+    let mLeftVA = [1000];
+    let mRightVA = [1000];
+    let genSpeedA = [1000];
+    let mLeftTicksA = [0];
+    let mRightTicksA = [0];
+    let eXA = [distanceX];
+    let eYA = [distanceY];
+    let eYSumA = [distanceY];
+    let pidTurnA = [0];
+    let realAngleTargetPointsXY = [ distanceX /10, 0, distanceX/4, offset, 3 * distanceX / 4, offset, distanceX, 0];
+    let fakeAngleTargetPointsXY = [];
+    
+
+    function getMRightTicks(t){
+        mRightTicksA[t] = mRightTicksA[t-1] + getMRightV(t-1);
+        return mRightTicksA[t];
+    }
+
+    function getMLeftTicks(t){
+        mLeftTicksA[t] = mLeftTicksA[t-1] + getMLeftV(t-1);
+        return mLeftTicksA[t];
+    }
+    function getAngle(t){
+        yawA[t] = (getMLeftTicks(t) - getMRightTicks(t)) /wheelBase;
+        return yawA[t];
+    }
+
+    function getX(t){
+        xA[t] = xA[t-1] + Math.sin(getAngle(t)) * getV(t);
+        return xA[t];
+    }
+
+    function getY(t){
+        yA[t] = yA[t-1] + Math.cos(getAngle(t)) * getV(t);
+        return yA[t];
+    }
+
+    function getV(t){
+        vA[t] = (getMLeftV() + mRightV()) / 2;
+        return vA[t];
+    }
+
+    function getGenSpeed(t){
+        genSpeedA[t] = Math.max(1, (1000 * (getEX(t) / distanceX)));
+        return genSpeedA[t];
+    }
+
+    function getEX(t){
+        eXA[t] = distanceX - getX(t);
+        return eXA[t];
+    }
+
+    function getEY(t){
+        eYA[t] = distanceY - getY(t);
+        eYSumA[t] = eYSumA[t-1] + eYA[t];
+        return eYA[t];
+    }
+
+    function pidTurn(){
+        pidTurnA[t] = getEY(t) * kP + eYSumA[t] * kI + (eYA[t] - eYA[t-1]) * kD;
+    }
+    function getMLeftV(t){
+        mLeftVA[t] = getGenSpeed(t) + pidTurn(t);
+        return mLeftVA[t];
+    }
+
+    function getMRightV(t){
+        mRightVA[t] = getGenSpeed(t) - pidTurn(t);
+        return mRightVA[t];
+    }
+
+    console.log("Past functions, not looping i think");
+    //segment 1
+    let t = 0;
+    pidTurn(1);
+    console.log("Past seg1, not looping");
+    //segment 2
+    console.log("Past seg2, not looping");
+    //segment 3
+    console.log("Past seg3, not looping");
+
     
 
     let plot = document.getElementById('plot');
